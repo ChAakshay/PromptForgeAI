@@ -1,0 +1,178 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { Copy, Loader2, Star, ThumbsDown, ThumbsUp } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
+import { handleOptimizePrompt } from "@/app/actions";
+import { useToast } from "@/hooks/use-toast";
+import type { OptimizePromptOutput } from "@/ai/flows/optimize-prompt";
+import OptimizationInsights from "./OptimizationInsights";
+
+export default function PromptOptimizer() {
+  const [originalPrompt, setOriginalPrompt] = useState("");
+  const [optimizationResult, setOptimizationResult] =
+    useState<OptimizePromptOutput | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
+
+  const freeOptimizationsLeft = 4; // Placeholder
+
+  const handleSubmit = () => {
+    if (!originalPrompt.trim()) {
+      toast({
+        title: "Input Required",
+        description: "Please enter a prompt to optimize.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await handleOptimizePrompt(originalPrompt);
+      if (result.error) {
+        toast({
+          title: "Optimization Failed",
+          description: result.error,
+          variant: "destructive",
+        });
+        setOptimizationResult(null);
+      } else {
+        setOptimizationResult(result);
+        toast({
+          title: "Prompt Optimized!",
+          description: "Your new prompt is ready.",
+        });
+      }
+    });
+  };
+
+  const handleCopyToClipboard = () => {
+    if (optimizationResult?.optimizedPrompt) {
+      navigator.clipboard.writeText(optimizationResult.optimizedPrompt);
+      toast({ title: "Copied to clipboard!" });
+    }
+  };
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="font-headline text-2xl">Your Prompt</CardTitle>
+          <CardDescription>
+            Enter the AI prompt you want to improve.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Textarea
+            placeholder="e.g., 'Write a story about a dragon.'"
+            className="min-h-[200px] text-base resize-y"
+            value={originalPrompt}
+            onChange={(e) => setOriginalPrompt(e.target.value)}
+          />
+        </CardContent>
+        <CardFooter className="flex justify-between items-center">
+          <p className="text-sm text-muted-foreground">
+            Free optimizations left today: {freeOptimizationsLeft} / 5
+          </p>
+          <Button
+            onClick={handleSubmit}
+            disabled={isPending}
+            className="bg-accent hover:bg-accent/90 text-accent-foreground"
+          >
+            {isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Optimizing...
+              </>
+            ) : (
+              "Optimize Prompt"
+            )}
+          </Button>
+        </CardFooter>
+      </Card>
+
+      <Card className="shadow-lg flex flex-col">
+        <CardHeader>
+          <CardTitle className="font-headline text-2xl">Optimized Output</CardTitle>
+          <CardDescription>
+            The enhanced prompt and analysis from our AI.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex-1 flex flex-col gap-4">
+          {isPending ? (
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-3/4" />
+              <Skeleton className="h-20 w-full" />
+              <Skeleton className="h-8 w-1/2" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          ) : optimizationResult ? (
+            <>
+              <div>
+                <h3 className="font-semibold mb-2">Refined Prompt</h3>
+                <div className="prose prose-sm max-w-none p-4 rounded-md bg-secondary/50 border relative">
+                  <pre className="whitespace-pre-wrap font-body text-sm text-secondary-foreground break-words">
+                    {optimizationResult.optimizedPrompt}
+                  </pre>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 h-7 w-7"
+                    onClick={handleCopyToClipboard}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              <OptimizationInsights
+                details={optimizationResult.optimizationDetails}
+              />
+            </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-center p-8 border-2 border-dashed rounded-lg">
+              <p className="text-muted-foreground">
+                Your optimized prompt will appear here.
+              </p>
+            </div>
+          )}
+        </CardContent>
+        {optimizationResult && !isPending && (
+          <CardFooter className="flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h4 className="text-sm font-medium mb-1.5 text-foreground">Was this helpful?</h4>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" disabled>
+                  <ThumbsUp className="mr-2 h-4 w-4" /> Yes
+                </Button>
+                <Button variant="outline" size="sm" disabled>
+                  <ThumbsDown className="mr-2 h-4 w-4" /> No
+                </Button>
+              </div>
+            </div>
+             <div className="flex items-center gap-1">
+              <p className="text-sm text-muted-foreground">Rate it:</p>
+              <div className="flex text-gray-300">
+                <Star className="h-5 w-5 hover:text-yellow-400 transition-colors cursor-pointer" />
+                <Star className="h-5 w-5 hover:text-yellow-400 transition-colors cursor-pointer" />
+                <Star className="h-5 w-5 hover:text-yellow-400 transition-colors cursor-pointer" />
+                <Star className="h-5 w-5 hover:text-yellow-400 transition-colors cursor-pointer" />
+                <Star className="h-5 w-5 hover:text-yellow-400 transition-colors cursor-pointer" />
+              </div>
+            </div>
+          </CardFooter>
+        )}
+      </Card>
+    </div>
+  );
+}
