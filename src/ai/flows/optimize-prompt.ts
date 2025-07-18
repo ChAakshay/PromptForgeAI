@@ -23,11 +23,20 @@ const OptimizePromptOutputSchema = z.object({
     .string()
     .describe('The refined, optimized prompt.'),
   optimizationDetails: z.object({
-    persona_added: z.boolean().optional().describe('Indicates if a persona was added to the prompt.'),
-    format_specified: z.string().optional().describe('The format specified in the prompt, if any (e.g., list, paragraph).'),
-    clarity_improvements: z.string().optional().describe('Details on how the clarity of the prompt was improved.'),
-    specificity_enhancements: z.string().optional().describe('Details on how the specificity of the prompt was enhanced.'),
-  }).describe('A summary of the changes made to the prompt during optimization.')
+    clarity: z.object({
+      score: z.number().min(0).max(10).describe('A score from 0-10 for prompt clarity.'),
+      explanation: z.string().describe('Explanation for the clarity score.'),
+    }),
+    specificity: z.object({
+      score: z.number().min(0).max(10).describe('A score from 0-10 for prompt specificity.'),
+      explanation: z.string().describe('Explanation for the specificity score.'),
+    }),
+    engagement: z.object({
+      score: z.number().min(0).max(10).describe('A score from 0-10 for how engaging the prompt is likely to be for an AI.'),
+      explanation: z.string().describe('Explanation for the engagement score.'),
+    }),
+    suggestions: z.array(z.string()).describe('A list of actionable suggestions for further improvement.'),
+  }).describe('A detailed analysis of the prompt optimization.')
 });
 export type OptimizePromptOutput = z.infer<typeof OptimizePromptOutputSchema>;
 
@@ -40,19 +49,16 @@ const prompt = ai.definePrompt({
   input: {schema: OptimizePromptInputSchema},
   output: {schema: OptimizePromptOutputSchema},
   prompt: `You are an expert Prompt Engineer. Your task is to optimize a given prompt for clarity, specificity, and effectiveness.
+Then, you must provide a detailed analysis of your optimization.
 
-  Please analyze the prompt and refine it to get better results from other AI models. Return a JSON object containing the optimizedPrompt and optimizationDetails.
+Analyze the original prompt and the optimized version to generate scores and explanations for clarity, specificity, and engagement.
+The scores should be on a scale of 0 to 10, where 10 is best, and reflect the quality of the *optimized* prompt.
+Also, provide a list of actionable suggestions that the user could apply to make the prompt even better.
 
-  Original Prompt: {{{originalPrompt}}}
+Original Prompt: {{{originalPrompt}}}
 
-  Specifically, the JSON object should contain:
-  - optimizedPrompt (string): The refined prompt.
-  - optimizationDetails (JSON object): A summary of the changes made, including:
-    - persona_added (boolean, optional): Indicates if a persona was added to the prompt.
-    - format_specified (string, optional): The format specified in the prompt (e.g., list, paragraph).
-    - clarity_improvements (string, optional): Details on how the clarity of the prompt was improved.
-    - specificity_enhancements (string, optional): Details on how the specificity of the prompt was enhanced.
-  `,
+Return a JSON object with the optimized prompt and the detailed analysis.
+`,
 });
 
 const optimizePromptFlow = ai.defineFlow(
