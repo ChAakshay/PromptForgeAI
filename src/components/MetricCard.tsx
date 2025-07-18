@@ -1,12 +1,12 @@
+
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@/components/ui/card";
 import {
   Tooltip,
@@ -14,9 +14,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
-import { TrendingUp } from "lucide-react";
-import { RadialBar, RadialBarChart, PolarGrid, PolarAngleAxis } from "recharts";
+import { Skeleton } from "./ui/skeleton";
+import { RadialBar, RadialBarChart, PolarAngleAxis } from "recharts";
 
 type MetricCardProps = {
   icon: React.ReactNode;
@@ -26,29 +25,41 @@ type MetricCardProps = {
 };
 
 export default function MetricCard({ icon, title, score, explanation }: MetricCardProps) {
-    const percentage = score * 10;
-    
-    let colorClass = "text-green-500";
-    if (score < 4) {
-        colorClass = "text-red-500";
-    } else if (score < 8) {
-        colorClass = "text-yellow-500";
-    }
+  const [isClient, setIsClient] = useState(false);
 
-    const chartData = [
-        {
-          name: title,
-          value: percentage,
-          fill: `var(--color-${title.toLowerCase()})`,
-        },
-      ];
-    
-      const colorStyle = {
-        '--color-clarity': 'hsl(var(--primary))',
-        '--color-specificity': 'hsl(var(--accent))',
-        '--color-engagement': 'hsl(262 80% 58%)',
-      } as React.CSSProperties;
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
+  const percentage = score * 10;
+
+  const chartData = [
+    {
+      name: title,
+      value: percentage,
+      fill: `var(--color-${title.toLowerCase()})`,
+    },
+  ];
+
+  const colorStyle = {
+    '--color-clarity': 'hsl(var(--primary))',
+    '--color-specificity': 'hsl(var(--accent))',
+    '--color-engagement': 'hsl(262 80% 58%)',
+  } as React.CSSProperties;
+
+  if (!isClient) {
+    return (
+        <Card className="flex flex-col items-center justify-center p-4 text-center h-full">
+            <Skeleton className="h-28 w-28 rounded-full" />
+            <CardHeader className="p-2 pb-0">
+                <CardTitle className="text-base font-semibold">{title}</CardTitle>
+            </CardHeader>
+            <CardContent className="p-2 pt-1">
+                <p className="text-2xl font-bold">{score}/10</p>
+            </CardContent>
+        </Card>
+    );
+  }
 
   return (
     <TooltipProvider>
