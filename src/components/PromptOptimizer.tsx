@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Copy, Loader2, PlusCircle, Sparkles, Star, ThumbsDown, ThumbsUp } from "lucide-react";
+import { useState, useTransition, useEffect } from "react";
+import { Copy, Loader2, PlusCircle, Sparkles, Star, ThumbsDown, ThumbsUp, Trash } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,10 +28,19 @@ import type { OptimizePromptOutput } from "@/ai/flows/optimize-prompt";
 import type { SummarizeOptimizationsOutput } from "@/ai/flows/summarize-optimizations";
 import OptimizationInsights from "./OptimizationInsights";
 import OptimizationSummary from "./OptimizationSummary";
+import { useHistory, type HistoryItem } from "@/hooks/useHistory";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { promptTemplates } from "@/lib/prompt-templates";
+import type { PromptTemplate } from "@/lib/prompt-templates";
 
 type OptimizationResult = OptimizePromptOutput & SummarizeOptimizationsOutput;
 
-export default function PromptOptimizer() {
+type PromptOptimizerProps = {
+  activeHistoryItem: HistoryItem | null;
+  onActiveHistoryItemUsed: () => void;
+};
+
+export default function PromptOptimizer({ activeHistoryItem, onActiveHistoryItemUsed }: PromptOptimizerProps) {
   const [originalPrompt, setOriginalPrompt] = useState("");
   const [targetAudience, setTargetAudience] = useState("");
   const [goal, setGoal] = useState("");
@@ -43,8 +52,45 @@ export default function PromptOptimizer() {
   const [isPending, startTransition] = useTransition();
   const [isSuggestingPersona, startPersonaSuggestionTransition] = useTransition();
   const { toast } = useToast();
+  const { addHistory } = useHistory();
+
+  useEffect(() => {
+    if (activeHistoryItem) {
+      const { input, result } = activeHistoryItem;
+      setOriginalPrompt(input.originalPrompt);
+      setTargetAudience(input.targetAudience || "");
+      setGoal(input.goal || "");
+      setKeyInfo(input.keyInfo || "");
+      setPersona(input.persona || "");
+      setOptimizationResult(result);
+      onActiveHistoryItemUsed();
+    }
+  }, [activeHistoryItem, onActiveHistoryItemUsed]);
+
 
   const freeOptimizationsLeft = 4; // Placeholder
+
+  const handleTemplateSelect = (templateId: string) => {
+    const template = promptTemplates.find(t => t.id === templateId);
+    if (template) {
+      setOriginalPrompt(template.inputs.originalPrompt);
+      setTargetAudience(template.inputs.targetAudience || "");
+      setGoal(template.inputs.goal || "");
+      setKeyInfo(template.inputs.keyInfo || "");
+      setPersona(template.inputs.persona || "");
+      setOptimizationResult(null); // Clear previous results
+    }
+  };
+
+  const handleClearForm = () => {
+    setOriginalPrompt("");
+    setTargetAudience("");
+    setGoal("");
+    setKeyInfo("");
+    setPersona("");
+    setOptimizationResult(null);
+  };
+
 
   const handleSubmit = () => {
     if (!originalPrompt.trim()) {
@@ -58,13 +104,14 @@ export default function PromptOptimizer() {
 
     startTransition(async () => {
       setOptimizationResult(null);
-      const result = await handleOptimizePrompt({ 
+      const input = { 
         originalPrompt,
         targetAudience,
         goal,
         keyInfo,
         persona,
-       });
+      };
+      const result = await handleOptimizePrompt(input);
       if (result.error) {
         toast({
           title: "Optimization Failed",
@@ -74,6 +121,7 @@ export default function PromptOptimizer() {
         setOptimizationResult(null);
       } else {
         setOptimizationResult(result);
+        addHistory({ input, result });
         toast({
           title: "Prompt Optimized!",
           description: "Your new prompt is ready.",
@@ -120,12 +168,33 @@ export default function PromptOptimizer() {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="font-headline text-2xl">Your Prompt</CardTitle>
-          <CardDescription>
-            Enter the AI prompt you want to improve. Add more context for better results.
-          </CardDescription>
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle className="font-headline text-2xl">Your Prompt</CardTitle>
+              <CardDescription>
+                Enter a prompt or select a template to get started.
+              </CardDescription>
+            </div>
+             <Button variant="ghost" size="icon" onClick={handleClearForm} className="h-8 w-8">
+                <Trash className="h-4 w-4" />
+                <span className="sr-only">Clear form</span>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label>Prompt Template (Optional)</Label>
+            <Select onValueChange={handleTemplateSelect}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a template..." />
+              </SelectTrigger>
+              <SelectContent>
+                {promptTemplates.map((template) => (
+                  <SelectItem key={template.id} value={template.id}>{template.title}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <Textarea
             placeholder="e.g., 'Write a story about a dragon.'"
             className="min-h-[150px] text-base resize-y"

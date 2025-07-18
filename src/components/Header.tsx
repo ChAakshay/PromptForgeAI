@@ -1,7 +1,11 @@
 import { Bot } from "lucide-react";
 import { Button } from "./ui/button";
 
-export default function Header() {
+type HeaderProps = {
+  onHistoryClick: () => void;
+};
+
+export default function Header({ onHistoryClick }: HeaderProps) {
   return (
     <header className="border-b bg-card">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -12,7 +16,7 @@ export default function Header() {
           </h1>
         </div>
         <nav className="flex items-center gap-2">
-          <Button variant="ghost" disabled>History</Button>
+          <Button variant="ghost" onClick={onHistoryClick}>History</Button>
           <Button variant="ghost" disabled>Premium</Button>
         </nav>
       </div>
