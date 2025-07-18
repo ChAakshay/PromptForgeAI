@@ -1,5 +1,6 @@
 "use server";
 
+import { diffPrompts, type DiffOutput } from "@/ai/flows/diff-prompts";
 import { optimizePrompt } from "@/ai/flows/optimize-prompt";
 import type { OptimizePromptInput, OptimizePromptOutput } from "@/ai/flows/optimize-prompt";
 import { summarizeOptimizations } from "@/ai/flows/summarize-optimizations";
@@ -7,7 +8,7 @@ import type { SummarizeOptimizationsOutput } from "@/ai/flows/summarize-optimiza
 import { suggestPersona } from "@/ai/flows/suggest-persona";
 import type { SuggestPersonaOutput } from "@/ai/flows/suggest-persona";
 
-type OptimizeActionResult = (OptimizePromptOutput & SummarizeOptimizationsOutput & { error?: undefined }) | { error: string };
+type OptimizeActionResult = (OptimizePromptOutput & SummarizeOptimizationsOutput & DiffOutput & { error?: undefined }) | { error: string };
 
 export async function handleOptimizePrompt(input: OptimizePromptInput): Promise<OptimizeActionResult> {
   try {
@@ -16,16 +17,26 @@ export async function handleOptimizePrompt(input: OptimizePromptInput): Promise<
         throw new Error("AI failed to return an optimized prompt.");
     }
     
-    const summaryResult = await summarizeOptimizations({ 
+    const [summaryResult, diffResult] = await Promise.all([
+      summarizeOptimizations({ 
         originalPrompt: input.originalPrompt, 
         optimizedPrompt: optimizationResult.optimizedPrompt 
-    });
+      }),
+      diffPrompts({
+        originalPrompt: input.originalPrompt,
+        optimizedPrompt: optimizationResult.optimizedPrompt
+      })
+    ]);
 
     if(!summaryResult || !summaryResult.summary) {
         throw new Error("AI failed to return a summary.");
     }
 
-    return { ...optimizationResult, ...summaryResult };
+    if(!diffResult || !diffResult.diff) {
+      throw new Error("AI failed to generate a diff.");
+    }
+
+    return { ...optimizationResult, ...summaryResult, ...diffResult };
   } catch (e) {
     console.error(e);
     const errorMessage = e instanceof Error ? e.message : "An unknown error occurred.";
@@ -36,7 +47,7 @@ export async function handleOptimizePrompt(input: OptimizePromptInput): Promise<
 }
 
 
-type SuggestPersonaResult = (SuggestPersonaOutput & { error?: undefined }) | { error: string };
+type SuggestPersonaResult = (SuggestPersonaOutput & { error?: undefined }) | { error:string };
 
 export async function handleSuggestPersona(prompt: string): Promise<SuggestPersonaResult> {
     if (!prompt.trim()) {

@@ -26,10 +26,12 @@ import { handleOptimizePrompt, handleSuggestPersona } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 import type { OptimizePromptOutput } from "@/ai/flows/optimize-prompt";
 import type { SummarizeOptimizationsOutput } from "@/ai/flows/summarize-optimizations";
+import type { DiffOutput } from "@/ai/flows/diff-prompts";
 import OptimizationInsights from "./OptimizationInsights";
 import OptimizationSummary from "./OptimizationSummary";
+import PromptDiffViewer from "./PromptDiffViewer";
 
-type OptimizationResult = OptimizePromptOutput & SummarizeOptimizationsOutput;
+type OptimizationResult = OptimizePromptOutput & SummarizeOptimizationsOutput & DiffOutput;
 
 export default function PromptOptimizer() {
   const [originalPrompt, setOriginalPrompt] = useState("");
@@ -205,8 +207,9 @@ export default function PromptOptimizer() {
             </div>
           ) : optimizationResult ? (
             <Tabs defaultValue="prompt" className="flex-1 flex flex-col">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="prompt">Optimized Prompt</TabsTrigger>
+                <TabsTrigger value="compare">Compare Changes</TabsTrigger>
                 <TabsTrigger value="summary">Key Changes</TabsTrigger>
                 <TabsTrigger value="analysis">Detailed Analysis</TabsTrigger>
               </TabsList>
@@ -224,6 +227,9 @@ export default function PromptOptimizer() {
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>
+              </TabsContent>
+               <TabsContent value="compare" className="flex-1 mt-4">
+                <PromptDiffViewer diff={optimizationResult.diff} />
               </TabsContent>
               <TabsContent value="summary" className="flex-1 mt-4">
                 <OptimizationSummary summary={optimizationResult.summary} />
