@@ -1,4 +1,5 @@
 import { CheckCircle, Lightbulb, TrendingUp, BarChart, Check, AlertTriangle } from "lucide-react";
+import { PerformanceChart } from "@/components/PerformanceChart";
 
 import {
   Card,
@@ -7,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import type { OptimizePromptOutput } from "@/ai/flows/optimize-prompt";
 import { Badge } from "./ui/badge";
 
@@ -15,57 +15,18 @@ type OptimizationInsightsProps = {
   details: OptimizePromptOutput["optimizationDetails"];
 };
 
-type MetricCardProps = {
-  title: string;
-  score: number;
-  explanation: string;
-};
-
-function MetricCard({ title, score, explanation }: MetricCardProps) {
-  return (
-    <Card className="bg-secondary/50">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base font-medium flex items-center justify-between">
-          <span>{title}</span>
-          <span className="text-lg font-bold text-primary">{score}/10</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Progress value={score * 10} className="h-2 mb-2" />
-        <p className="text-xs text-muted-foreground">{explanation}</p>
-      </CardContent>
-    </Card>
-  );
-}
-
 export default function OptimizationInsights({
   details,
 }: OptimizationInsightsProps) {
   return (
     <div className="space-y-6">
-       {/* Performance Metrics */}
+       {/* Visual Metrics */}
       <div>
         <h3 className="font-semibold mb-3 text-lg flex items-center gap-2">
             <BarChart className="h-5 w-5 text-primary" />
-            Performance Metrics
+            Visual Metrics
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <MetricCard
-            title="Clarity"
-            score={details.performanceMetrics.clarity.score}
-            explanation={details.performanceMetrics.clarity.explanation}
-          />
-          <MetricCard
-            title="Specificity"
-            score={details.performanceMetrics.specificity.score}
-            explanation={details.performanceMetrics.specificity.explanation}
-          />
-          <MetricCard
-            title="Engagement"
-            score={details.performanceMetrics.engagement.score}
-            explanation={details.performanceMetrics.engagement.explanation}
-          />
-        </div>
+        <PerformanceChart metrics={details.performanceMetrics} />
       </div>
       
        {/* Original Prompt Analysis */}
