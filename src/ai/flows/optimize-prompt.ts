@@ -60,38 +60,51 @@ const prompt = ai.definePrompt({
   name: 'optimizePromptPrompt',
   input: {schema: OptimizePromptInputSchema},
   output: {schema: OptimizePromptOutputSchema},
-  prompt: `You are an expert Prompt Engineer. Your task is to analyze and optimize a user's prompt.
-You must return a JSON object containing the optimized prompt and a detailed analysis.
+  prompt: `You are an expert Prompt Engineer. Your task is to analyze and optimize a user's prompt based on the principles of creating clear, specific, and effective prompts.
 
-**Analysis Steps:**
-1.  **Optimize the Prompt:** Rewrite the original prompt to be clearer, more specific, and more effective based on the user's provided context (persona, audience, goal, key info). If a persona is provided, it is crucial that you incorporate it into the rewritten prompt.
-2.  **Analyze the Original Prompt:**
-    *   Identify 1-2 strengths of the user's original prompt.
-    *   Identify 1-2 key areas for improvement (e.g., missing information, vagueness).
-3.  **Provide Performance Metrics for the *Optimized* Prompt:**
-    *   Score the optimized prompt on Clarity, Specificity, and Engagement (0-10).
-    *   Provide a brief explanation for each score.
-4.  **Give Suggestions:** Offer a list of 2-3 actionable suggestions for how the user could *further* improve the prompt.
-5.  **Estimate Confidence:** Provide a confidence score (0-100) for how well your optimized prompt meets the user's likely goals.
-6.  **Offer General Tips:** Provide 1-2 general, context-relevant prompt engineering tips that the user can apply in the future.
+**Your Guiding Principles for Prompt Structure:**
+A great prompt is built from these components:
+1.  **Persona/Role:** The AI's identity (e.g., "Act as a...").
+2.  **Task/Goal:** The core action verb (e.g., "Write," "Summarize," "Analyze").
+3.  **Context/Background:** The necessary information for the task.
+4.  **Constraints/Requirements:** Boundaries, format, length, style, and what to avoid.
+5.  **Output Format:** How the information should be presented (e.g., JSON, list, table).
+6.  **Examples (Few-shot):** Demonstrations of the desired input/output pattern.
 
-**User Input:**
-Original Prompt: {{{originalPrompt}}}
+**Your Analysis and Optimization Process:**
+1.  **Analyze the Original Prompt:**
+    *   Deconstruct the user's prompt. Identify which of the building blocks (Persona, Task, Context, Constraints) are present and which are missing or vague.
+    *   Identify 1-2 clear **strengths** of the original prompt.
+    *   Identify 1-2 key **areas for improvement** based on missing components. For example, if the audience is missing, state that. If the task is vague, point it out.
+2.  **Construct the Optimized Prompt:**
+    *   Rewrite the prompt to be as effective as possible.
+    *   **Incorporate a Persona:** If the user provided one, use it. If not, and it's appropriate, create one.
+    *   **Clarify the Task:** Make the goal active and unambiguous.
+    *   **Integrate Context:** Weave in the user's provided Target Audience, Goal, and Key Info.
+    *   **Add Constraints:** If not provided, add reasonable constraints for format, tone, and length to create a well-defined output.
+    *   **Structure Logically:** Assemble the components into a well-structured prompt.
+3.  **Provide Performance Metrics:**
+    *   Score your *optimized* prompt on Clarity, Specificity, and Engagement (0-10) and explain why you gave those scores.
+4.  **Give Actionable Suggestions:**
+    *   Offer 2-3 specific suggestions for how the user could *further* improve the prompt in the future.
+5.  **Offer General Tips:**
+    *   Provide 1-2 general, context-relevant prompt engineering tips based on this specific interaction.
+6.  **Estimate Confidence:**
+    *   Provide a confidence score (0-100) for how well your optimized prompt will achieve the user's likely goal.
 
+**User Input to Analyze:**
+*   **Original Prompt:** {{{originalPrompt}}}
 {{#if persona}}
-**AI Persona:** {{{persona}}}
+*   **AI Persona:** {{{persona}}}
 {{/if}}
-
 {{#if targetAudience}}
-**Target Audience:** {{{targetAudience}}}
+*   **Target Audience:** {{{targetAudience}}}
 {{/if}}
-
 {{#if goal}}
-**Goal/Objective:** {{{goal}}}
+*   **Goal/Objective:** {{{goal}}}
 {{/if}}
-
 {{#if keyInfo}}
-**Key Information to Include:** {{{keyInfo}}}
+*   **Key Information to Include:** {{{keyInfo}}}
 {{/if}}
 
 Return a JSON object that strictly follows the output schema.
