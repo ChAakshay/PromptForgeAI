@@ -26,19 +26,27 @@ const OptimizePromptOutputSchema = z.object({
     .string()
     .describe('The refined, optimized prompt.'),
   optimizationDetails: z.object({
-    clarity: z.object({
-      score: z.number().min(0).max(10).describe('A score from 0-10 for prompt clarity.'),
-      explanation: z.string().describe('Explanation for the clarity score.'),
-    }),
-    specificity: z.object({
-      score: z.number().min(0).max(10).describe('A score from 0-10 for prompt specificity.'),
-      explanation: z.string().describe('Explanation for the specificity score.'),
-    }),
-    engagement: z.object({
-      score: z.number().min(0).max(10).describe('A score from 0-10 for how engaging the prompt is likely to be for an AI.'),
-      explanation: z.string().describe('Explanation for the engagement score.'),
-    }),
+    confidenceScore: z.number().min(0).max(100).describe("A percentage score indicating the AI's confidence in the quality of the optimized prompt."),
+    originalPromptAnalysis: z.object({
+        strengths: z.array(z.string()).describe("A list of what was good about the user's original prompt."),
+        areasForImprovement: z.array(z.string()).describe("A list of areas where the original prompt could be improved."),
+    }).describe("An analysis of the user's original prompt."),
+    performanceMetrics: z.object({
+      clarity: z.object({
+        score: z.number().min(0).max(10).describe('A score from 0-10 for prompt clarity.'),
+        explanation: z.string().describe('Explanation for the clarity score.'),
+      }),
+      specificity: z.object({
+        score: z.number().min(0).max(10).describe('A score from 0-10 for prompt specificity.'),
+        explanation: z.string().describe('Explanation for the specificity score.'),
+      }),
+      engagement: z.object({
+        score: z.number().min(0).max(10).describe('A score from 0-10 for how engaging the prompt is likely to be for an AI.'),
+        explanation: z.string().describe('Explanation for the engagement score.'),
+      }),
+    }).describe("Metrics for the optimized prompt."),
     suggestions: z.array(z.string()).describe('A list of actionable suggestions for further improvement.'),
+    generalTips: z.array(z.string()).describe("A list of 1-2 relevant, general prompt engineering principles based on this interaction.")
   }).describe('A detailed analysis of the prompt optimization.')
 });
 export type OptimizePromptOutput = z.infer<typeof OptimizePromptOutputSchema>;
@@ -51,13 +59,22 @@ const prompt = ai.definePrompt({
   name: 'optimizePromptPrompt',
   input: {schema: OptimizePromptInputSchema},
   output: {schema: OptimizePromptOutputSchema},
-  prompt: `You are an expert Prompt Engineer. Your task is to optimize a given prompt for clarity, specificity, and effectiveness, using the provided context.
-Then, you must provide a detailed analysis of your optimization.
+  prompt: `You are an expert Prompt Engineer. Your task is to analyze and optimize a user's prompt.
+You must return a JSON object containing the optimized prompt and a detailed analysis.
 
-Analyze the original prompt and the optimized version to generate scores and explanations for clarity, specificity, and engagement.
-The scores should be on a scale of 0 to 10, where 10 is best, and reflect the quality of the *optimized* prompt.
-Also, provide a list of actionable suggestions that the user could apply to make the prompt even better.
+**Analysis Steps:**
+1.  **Optimize the Prompt:** Rewrite the original prompt to be clearer, more specific, and more effective based on the user's provided context (audience, goal, key info).
+2.  **Analyze the Original Prompt:**
+    *   Identify 1-2 strengths of the user's original prompt.
+    *   Identify 1-2 key areas for improvement (e.g., missing information, vagueness).
+3.  **Provide Performance Metrics for the *Optimized* Prompt:**
+    *   Score the optimized prompt on Clarity, Specificity, and Engagement (0-10).
+    *   Provide a brief explanation for each score.
+4.  **Give Suggestions:** Offer a list of 2-3 actionable suggestions for how the user could *further* improve the prompt.
+5.  **Estimate Confidence:** Provide a confidence score (0-100) for how well your optimized prompt meets the user's likely goals.
+6.  **Offer General Tips:** Provide 1-2 general, context-relevant prompt engineering tips that the user can apply in the future.
 
+**User Input:**
 Original Prompt: {{{originalPrompt}}}
 
 {{#if targetAudience}}
@@ -72,7 +89,7 @@ Original Prompt: {{{originalPrompt}}}
 **Key Information to Include:** {{{keyInfo}}}
 {{/if}}
 
-Return a JSON object with the optimized prompt and the detailed analysis.
+Return a JSON object that strictly follows the output schema.
 `,
 });
 
