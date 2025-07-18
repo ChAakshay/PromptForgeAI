@@ -14,15 +14,20 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { handleOptimizePrompt } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 import type { OptimizePromptOutput } from "@/ai/flows/optimize-prompt";
+import type { SummarizeOptimizationsOutput } from "@/ai/flows/summarize-optimizations";
 import OptimizationInsights from "./OptimizationInsights";
+import OptimizationSummary from "./OptimizationSummary";
+
+type OptimizationResult = OptimizePromptOutput & SummarizeOptimizationsOutput;
 
 export default function PromptOptimizer() {
   const [originalPrompt, setOriginalPrompt] = useState("");
   const [optimizationResult, setOptimizationResult] =
-    useState<OptimizePromptOutput | null>(null);
+    useState<OptimizationResult | null>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
@@ -39,6 +44,7 @@ export default function PromptOptimizer() {
     }
 
     startTransition(async () => {
+      setOptimizationResult(null);
       const result = await handleOptimizePrompt(originalPrompt);
       if (result.error) {
         toast({
@@ -112,16 +118,21 @@ export default function PromptOptimizer() {
         <CardContent className="flex-1 flex flex-col gap-4">
           {isPending ? (
             <div className="space-y-4">
-              <Skeleton className="h-8 w-3/4" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-8 w-3/4 mt-4" />
               <Skeleton className="h-20 w-full" />
               <Skeleton className="h-8 w-1/2" />
               <Skeleton className="h-10 w-full" />
             </div>
           ) : optimizationResult ? (
-            <>
-              <div>
-                <h3 className="font-semibold mb-2">Refined Prompt</h3>
-                <div className="prose prose-sm max-w-none p-4 rounded-md bg-secondary/50 border relative">
+            <Tabs defaultValue="prompt" className="flex-1 flex flex-col">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="prompt">Optimized Prompt</TabsTrigger>
+                <TabsTrigger value="summary">Key Changes</TabsTrigger>
+                <TabsTrigger value="analysis">Detailed Analysis</TabsTrigger>
+              </TabsList>
+              <TabsContent value="prompt" className="flex-1 mt-4">
+                 <div className="prose prose-sm max-w-none p-4 rounded-md bg-secondary/50 border relative h-full">
                   <pre className="whitespace-pre-wrap font-body text-sm text-secondary-foreground break-words">
                     {optimizationResult.optimizedPrompt}
                   </pre>
@@ -134,11 +145,16 @@ export default function PromptOptimizer() {
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>
-              </div>
-              <OptimizationInsights
-                details={optimizationResult.optimizationDetails}
-              />
-            </>
+              </TabsContent>
+              <TabsContent value="summary" className="flex-1 mt-4">
+                <OptimizationSummary summary={optimizationResult.summary} />
+              </TabsContent>
+              <TabsContent value="analysis" className="flex-1 mt-4">
+                <OptimizationInsights
+                  details={optimizationResult.optimizationDetails}
+                />
+              </TabsContent>
+            </Tabs>
           ) : (
             <div className="flex-1 flex items-center justify-center text-center p-8 border-2 border-dashed rounded-lg">
               <p className="text-muted-foreground">
