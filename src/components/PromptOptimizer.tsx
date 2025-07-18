@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Copy, Loader2, Star, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Copy, Loader2, PlusCircle, Star, ThumbsDown, ThumbsUp } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +12,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,6 +33,10 @@ type OptimizationResult = OptimizePromptOutput & SummarizeOptimizationsOutput;
 
 export default function PromptOptimizer() {
   const [originalPrompt, setOriginalPrompt] = useState("");
+  const [targetAudience, setTargetAudience] = useState("");
+  const [goal, setGoal] = useState("");
+  const [keyInfo, setKeyInfo] = useState("");
+
   const [optimizationResult, setOptimizationResult] =
     useState<OptimizationResult | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -45,7 +56,12 @@ export default function PromptOptimizer() {
 
     startTransition(async () => {
       setOptimizationResult(null);
-      const result = await handleOptimizePrompt(originalPrompt);
+      const result = await handleOptimizePrompt({ 
+        originalPrompt,
+        targetAudience,
+        goal,
+        keyInfo,
+       });
       if (result.error) {
         toast({
           title: "Optimization Failed",
@@ -76,16 +92,38 @@ export default function PromptOptimizer() {
         <CardHeader>
           <CardTitle className="font-headline text-2xl">Your Prompt</CardTitle>
           <CardDescription>
-            Enter the AI prompt you want to improve.
+            Enter the AI prompt you want to improve. Add more context for better results.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <Textarea
             placeholder="e.g., 'Write a story about a dragon.'"
-            className="min-h-[200px] text-base resize-y"
+            className="min-h-[150px] text-base resize-y"
             value={originalPrompt}
             onChange={(e) => setOriginalPrompt(e.target.value)}
           />
+          <Collapsible>
+            <CollapsibleTrigger asChild>
+              <Button variant="link" className="p-0 h-auto">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add More Context (Optional)
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-4 pt-4">
+               <div className="space-y-2">
+                <Label htmlFor="target-audience">Target Audience</Label>
+                <Input id="target-audience" placeholder="e.g., Children, Technical experts" value={targetAudience} onChange={(e) => setTargetAudience(e.target.value)} />
+              </div>
+               <div className="space-y-2">
+                <Label htmlFor="goal">Goal / Objective</Label>
+                <Input id="goal" placeholder="e.g., Generate a marketing slogan, Explain a concept simply" value={goal} onChange={(e) => setGoal(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="key-info">Key Information to Include</Label>
+                <Textarea id="key-info" placeholder="e.g., Must mention the product 'Zapify', avoid technical jargon" className="min-h-[100px]" value={keyInfo} onChange={(e) => setKeyInfo(e.target.value)} />
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         </CardContent>
         <CardFooter className="flex justify-between items-center">
           <p className="text-sm text-muted-foreground">

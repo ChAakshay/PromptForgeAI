@@ -1,21 +1,21 @@
 "use server";
 
 import { optimizePrompt } from "@/ai/flows/optimize-prompt";
-import type { OptimizePromptOutput } from "@/ai/flows/optimize-prompt";
+import type { OptimizePromptInput, OptimizePromptOutput } from "@/ai/flows/optimize-prompt";
 import { summarizeOptimizations } from "@/ai/flows/summarize-optimizations";
 import type { SummarizeOptimizationsOutput } from "@/ai/flows/summarize-optimizations";
 
 type ActionResult = (OptimizePromptOutput & SummarizeOptimizationsOutput & { error?: undefined }) | { error: string };
 
-export async function handleOptimizePrompt(originalPrompt: string): Promise<ActionResult> {
+export async function handleOptimizePrompt(input: OptimizePromptInput): Promise<ActionResult> {
   try {
-    const optimizationResult = await optimizePrompt({ originalPrompt });
+    const optimizationResult = await optimizePrompt(input);
     if (!optimizationResult || !optimizationResult.optimizedPrompt) {
         throw new Error("AI failed to return an optimized prompt.");
     }
     
     const summaryResult = await summarizeOptimizations({ 
-        originalPrompt, 
+        originalPrompt: input.originalPrompt, 
         optimizedPrompt: optimizationResult.optimizedPrompt 
     });
 

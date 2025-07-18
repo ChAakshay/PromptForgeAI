@@ -15,6 +15,9 @@ const OptimizePromptInputSchema = z.object({
   originalPrompt: z
     .string()
     .describe('The original prompt to be optimized.'),
+  targetAudience: z.string().optional().describe('The intended audience for the AI-generated response.'),
+  goal: z.string().optional().describe('The primary objective or desired outcome of the prompt.'),
+  keyInfo: z.string().optional().describe('Any key information, keywords, or constraints that must be included or considered.'),
 });
 export type OptimizePromptInput = z.infer<typeof OptimizePromptInputSchema>;
 
@@ -48,7 +51,7 @@ const prompt = ai.definePrompt({
   name: 'optimizePromptPrompt',
   input: {schema: OptimizePromptInputSchema},
   output: {schema: OptimizePromptOutputSchema},
-  prompt: `You are an expert Prompt Engineer. Your task is to optimize a given prompt for clarity, specificity, and effectiveness.
+  prompt: `You are an expert Prompt Engineer. Your task is to optimize a given prompt for clarity, specificity, and effectiveness, using the provided context.
 Then, you must provide a detailed analysis of your optimization.
 
 Analyze the original prompt and the optimized version to generate scores and explanations for clarity, specificity, and engagement.
@@ -56,6 +59,18 @@ The scores should be on a scale of 0 to 10, where 10 is best, and reflect the qu
 Also, provide a list of actionable suggestions that the user could apply to make the prompt even better.
 
 Original Prompt: {{{originalPrompt}}}
+
+{{#if targetAudience}}
+**Target Audience:** {{{targetAudience}}}
+{{/if}}
+
+{{#if goal}}
+**Goal/Objective:** {{{goal}}}
+{{/if}}
+
+{{#if keyInfo}}
+**Key Information to Include:** {{{keyInfo}}}
+{{/if}}
 
 Return a JSON object with the optimized prompt and the detailed analysis.
 `,
