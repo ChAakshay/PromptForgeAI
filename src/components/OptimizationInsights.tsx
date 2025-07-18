@@ -1,4 +1,4 @@
-import { CheckCircle, Lightbulb, TrendingUp, BarChart, Check, AlertTriangle, Target, Gauge, BrainCircuit } from "lucide-react";
+import { CheckCircle, Lightbulb, TrendingUp, BarChart, Check, AlertTriangle, Target, Gauge, BrainCircuit, SlidersHorizontal } from "lucide-react";
 import MetricCard from "@/components/MetricCard";
 import {
   Card,
@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/card";
 import type { OptimizePromptOutput } from "@/ai/flows/optimize-prompt";
 import { Badge } from "./ui/badge";
+import ParameterSimulator from "./ParameterSimulator";
 
 type OptimizationInsightsProps = {
   details: OptimizePromptOutput["optimizationDetails"];
@@ -44,6 +45,8 @@ export default function OptimizationInsights({
             />
         </div>
       </div>
+
+       <ParameterSimulator />
       
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
