@@ -29,9 +29,6 @@ import type { SummarizeOptimizationsOutput } from "@/ai/flows/summarize-optimiza
 import OptimizationInsights from "./OptimizationInsights";
 import OptimizationSummary from "./OptimizationSummary";
 import { useHistory, type HistoryItem } from "@/hooks/useHistory";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { promptTemplates } from "@/lib/prompt-templates";
-import type { PromptTemplate } from "@/lib/prompt-templates";
 
 type OptimizationResult = OptimizePromptOutput & SummarizeOptimizationsOutput;
 
@@ -69,18 +66,6 @@ export default function PromptOptimizer({ activeHistoryItem, onActiveHistoryItem
 
 
   const freeOptimizationsLeft = 4; // Placeholder
-
-  const handleTemplateSelect = (templateId: string) => {
-    const template = promptTemplates.find(t => t.id === templateId);
-    if (template) {
-      setOriginalPrompt(template.inputs.originalPrompt);
-      setTargetAudience(template.inputs.targetAudience || "");
-      setGoal(template.inputs.goal || "");
-      setKeyInfo(template.inputs.keyInfo || "");
-      setPersona(template.inputs.persona || "");
-      setOptimizationResult(null); // Clear previous results
-    }
-  };
 
   const handleClearForm = () => {
     setOriginalPrompt("");
@@ -172,7 +157,7 @@ export default function PromptOptimizer({ activeHistoryItem, onActiveHistoryItem
             <div>
               <CardTitle className="font-headline text-2xl">Your Prompt</CardTitle>
               <CardDescription>
-                Enter a prompt or select a template to get started.
+                Enter a prompt to get started.
               </CardDescription>
             </div>
              <Button variant="ghost" size="icon" onClick={handleClearForm} className="h-8 w-8">
@@ -182,19 +167,6 @@ export default function PromptOptimizer({ activeHistoryItem, onActiveHistoryItem
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Prompt Template (Optional)</Label>
-            <Select onValueChange={handleTemplateSelect}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a template..." />
-              </SelectTrigger>
-              <SelectContent>
-                {promptTemplates.map((template) => (
-                  <SelectItem key={template.id} value={template.id}>{template.title}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
           <Textarea
             placeholder="e.g., 'Write a story about a dragon.'"
             className="min-h-[150px] text-base resize-y"
