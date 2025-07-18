@@ -125,14 +125,12 @@ export default function PromptOptimizer() {
             </CollapsibleContent>
           </Collapsible>
         </CardContent>
-        <CardFooter className="flex justify-between items-center">
-          <p className="text-sm text-muted-foreground">
-            Free optimizations left today: {freeOptimizationsLeft} / 5
-          </p>
-          <Button
+        <CardFooter className="flex flex-col items-stretch gap-4">
+           <Button
             onClick={handleSubmit}
             disabled={isPending}
-            className="bg-accent hover:bg-accent/90 text-accent-foreground"
+            className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
+            size="lg"
           >
             {isPending ? (
               <>
@@ -143,6 +141,9 @@ export default function PromptOptimizer() {
               "Optimize Prompt"
             )}
           </Button>
+          <p className="text-sm text-muted-foreground text-center">
+            Free optimizations left today: {freeOptimizationsLeft} / 5
+          </p>
         </CardFooter>
       </Card>
 
@@ -202,20 +203,18 @@ export default function PromptOptimizer() {
           )}
         </CardContent>
         {optimizationResult && !isPending && (
-          <CardFooter className="flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h4 className="text-sm font-medium mb-1.5 text-foreground">Was this helpful?</h4>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" disabled>
+          <CardFooter className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+               <h4 className="text-sm font-medium text-foreground">Helpful?</h4>
+               <Button variant="outline" size="sm" disabled>
                   <ThumbsUp className="mr-2 h-4 w-4" /> Yes
                 </Button>
                 <Button variant="outline" size="sm" disabled>
                   <ThumbsDown className="mr-2 h-4 w-4" /> No
                 </Button>
-              </div>
             </div>
-             <div className="flex items-center gap-1">
-              <p className="text-sm text-muted-foreground">Rate it:</p>
+             <div className="flex items-center gap-2">
+              <p className="text-sm font-medium text-foreground">Rate it:</p>
               <div className="flex text-gray-300">
                 <Star className="h-5 w-5 hover:text-yellow-400 transition-colors cursor-pointer" />
                 <Star className="h-5 w-5 hover:text-yellow-400 transition-colors cursor-pointer" />
