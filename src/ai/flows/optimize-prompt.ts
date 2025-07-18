@@ -18,6 +18,7 @@ const OptimizePromptInputSchema = z.object({
   targetAudience: z.string().optional().describe('The intended audience for the AI-generated response.'),
   goal: z.string().optional().describe('The primary objective or desired outcome of the prompt.'),
   keyInfo: z.string().optional().describe('Any key information, keywords, or constraints that must be included or considered.'),
+  persona: z.string().optional().describe('The suggested expert persona for the AI to adopt.'),
 });
 export type OptimizePromptInput = z.infer<typeof OptimizePromptInputSchema>;
 
@@ -63,7 +64,7 @@ const prompt = ai.definePrompt({
 You must return a JSON object containing the optimized prompt and a detailed analysis.
 
 **Analysis Steps:**
-1.  **Optimize the Prompt:** Rewrite the original prompt to be clearer, more specific, and more effective based on the user's provided context (audience, goal, key info).
+1.  **Optimize the Prompt:** Rewrite the original prompt to be clearer, more specific, and more effective based on the user's provided context (persona, audience, goal, key info). If a persona is provided, it is crucial that you incorporate it into the rewritten prompt.
 2.  **Analyze the Original Prompt:**
     *   Identify 1-2 strengths of the user's original prompt.
     *   Identify 1-2 key areas for improvement (e.g., missing information, vagueness).
@@ -76,6 +77,10 @@ You must return a JSON object containing the optimized prompt and a detailed ana
 
 **User Input:**
 Original Prompt: {{{originalPrompt}}}
+
+{{#if persona}}
+**AI Persona:** {{{persona}}}
+{{/if}}
 
 {{#if targetAudience}}
 **Target Audience:** {{{targetAudience}}}

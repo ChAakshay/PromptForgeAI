@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Copy, Loader2, PlusCircle, Star, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Copy, Loader2, PlusCircle, Sparkles, Star, ThumbsDown, ThumbsUp } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { handleOptimizePrompt } from "@/app/actions";
+import { handleOptimizePrompt, handleSuggestPersona } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 import type { OptimizePromptOutput } from "@/ai/flows/optimize-prompt";
 import type { SummarizeOptimizationsOutput } from "@/ai/flows/summarize-optimizations";
@@ -36,10 +36,12 @@ export default function PromptOptimizer() {
   const [targetAudience, setTargetAudience] = useState("");
   const [goal, setGoal] = useState("");
   const [keyInfo, setKeyInfo] = useState("");
+  const [persona, setPersona] = useState("");
 
   const [optimizationResult, setOptimizationResult] =
     useState<OptimizationResult | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [isSuggestingPersona, startPersonaSuggestionTransition] = useTransition();
   const { toast } = useToast();
 
   const freeOptimizationsLeft = 4; // Placeholder
@@ -61,6 +63,7 @@ export default function PromptOptimizer() {
         targetAudience,
         goal,
         keyInfo,
+        persona,
        });
       if (result.error) {
         toast({
@@ -74,6 +77,33 @@ export default function PromptOptimizer() {
         toast({
           title: "Prompt Optimized!",
           description: "Your new prompt is ready.",
+        });
+      }
+    });
+  };
+
+  const handleSuggestPersonaClick = () => {
+    if (!originalPrompt.trim()) {
+      toast({
+        title: "Input Required",
+        description: "Please enter a prompt before suggesting a persona.",
+        variant: "destructive",
+      });
+      return;
+    }
+    startPersonaSuggestionTransition(async () => {
+      const result = await handleSuggestPersona(originalPrompt);
+      if (result.error) {
+        toast({
+          title: "Suggestion Failed",
+          description: result.error,
+          variant: "destructive",
+        });
+      } else {
+        setPersona(result.persona);
+        toast({
+          title: "Persona Suggested!",
+          description: "An expert persona has been added for you.",
         });
       }
     });
@@ -110,6 +140,16 @@ export default function PromptOptimizer() {
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-4 pt-4">
+               <div className="space-y-2">
+                <Label htmlFor="persona">AI Persona</Label>
+                <div className="flex gap-2">
+                  <Input id="persona" placeholder="e.g., You are a world-class chef" value={persona} onChange={(e) => setPersona(e.target.value)} />
+                   <Button variant="outline" onClick={handleSuggestPersonaClick} disabled={isSuggestingPersona}>
+                    {isSuggestingPersona ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                    Suggest
+                  </Button>
+                </div>
+              </div>
                <div className="space-y-2">
                 <Label htmlFor="target-audience">Target Audience</Label>
                 <Input id="target-audience" placeholder="e.g., Children, Technical experts" value={targetAudience} onChange={(e) => setTargetAudience(e.target.value)} />
