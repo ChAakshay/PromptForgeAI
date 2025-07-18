@@ -1,10 +1,8 @@
-import { CheckCircle, Lightbulb, TrendingUp, BarChart, Check, AlertTriangle } from "lucide-react";
-import { PerformanceChart } from "@/components/PerformanceChart";
-
+import { CheckCircle, Lightbulb, TrendingUp, BarChart, Check, AlertTriangle, Target, Gauge, BrainCircuit } from "lucide-react";
+import MetricCard from "@/components/MetricCard";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -20,16 +18,33 @@ export default function OptimizationInsights({
 }: OptimizationInsightsProps) {
   return (
     <div className="space-y-6">
-       {/* Visual Metrics */}
       <div>
-        <h3 className="font-semibold mb-3 text-lg flex items-center gap-2">
+        <h3 className="font-semibold mb-4 text-lg flex items-center gap-2">
             <BarChart className="h-5 w-5 text-primary" />
-            Visual Metrics
+            Performance Metrics
         </h3>
-        <PerformanceChart metrics={details.performanceMetrics} />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <MetricCard
+                icon={<Target className="h-6 w-6" />}
+                title="Clarity"
+                score={details.performanceMetrics.clarity.score}
+                explanation={details.performanceMetrics.clarity.explanation}
+            />
+            <MetricCard
+                icon={<Gauge className="h-6 w-6" />}
+                title="Specificity"
+                score={details.performanceMetrics.specificity.score}
+                explanation={details.performanceMetrics.specificity.explanation}
+            />
+            <MetricCard
+                icon={<BrainCircuit className="h-6 w-6" />}
+                title="Engagement"
+                score={details.performanceMetrics.engagement.score}
+                explanation={details.performanceMetrics.engagement.explanation}
+            />
+        </div>
       </div>
       
-       {/* Original Prompt Analysis */}
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
             <CardHeader>
@@ -63,7 +78,6 @@ export default function OptimizationInsights({
         </Card>
        </div>
 
-      {/* Suggestions */}
       {details.suggestions && details.suggestions.length > 0 && (
         <div>
           <h3 className="font-semibold mb-3 text-lg flex items-center gap-2">
@@ -81,8 +95,7 @@ export default function OptimizationInsights({
         </div>
       )}
       
-       {/* General Tips */}
-      {details.generalTips && details.generalTips.length > 0 && (
+       {details.generalTips && details.generalTips.length > 0 && (
         <div>
           <h3 className="font-semibold mb-3 text-lg flex items-center gap-2">
             <Lightbulb className="h-5 w-5 text-primary" />
