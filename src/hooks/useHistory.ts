@@ -21,6 +21,7 @@ export function useHistory() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
   useEffect(() => {
+    // This code now runs only on the client
     try {
       const storedHistory = localStorage.getItem(HISTORY_KEY);
       if (storedHistory) {
@@ -36,14 +37,17 @@ export function useHistory() {
     try {
       const slicedHistory = newHistory.slice(0, MAX_HISTORY_ITEMS);
       setHistory(slicedHistory);
+      // localStorage is safe to use here because this function is only called from event handlers on the client
       localStorage.setItem(HISTORY_KEY, JSON.stringify(slicedHistory));
-    } catch (error) {
+    } catch (error)
+      {
       console.error("Failed to save history to localStorage:", error);
     }
   }, []);
 
   const addHistory = useCallback(
     (item: Omit<HistoryItem, "id" | "timestamp">) => {
+      // crypto.randomUUID() is safe to use here because this function is only called from event handlers on the client
       const newItem: HistoryItem = {
         ...item,
         id: crypto.randomUUID(),
